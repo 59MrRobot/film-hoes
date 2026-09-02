@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id           Int          @id @default(autoincrement())
+  username     String       @unique
+  passwordHash String
+  nominations  Nomination[]
+  votes        Vote[]
+  createdAt    DateTime     @default(now())
+}
+
+model Week {
+  id          Int          @id @default(autoincrement())
+  startDate   DateTime     @default(now())
+  isActive    Boolean      @default(true)
+  nominations Nomination[]
+}
+
+model Nomination {
+  id           Int      @id @default(autoincrement())
+  weekId       Int
+  week         Week     @relation(fields: [weekId], references: [id])
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  tmdbMovieId  Int
+  title        String
+  posterUrl    String?
+  votes        Vote[]
+  createdAt    DateTime @default(now())
+}
+
+model Vote {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  user         User       @relation(fields: [userId], references: [id])
+  nominationId Int
+  nomination   Nomination @relation(fields: [nominationId], references: [id])
+  createdAt    DateTime   @default(now())
+
+  // A user can only vote for a specific nomination once
+  @@unique([userId, nominationId])
+}

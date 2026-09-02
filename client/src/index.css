@@ -1,0 +1,53 @@
+@font-face {
+  font-family: 'ITC Fenice';
+  src: url('./fonts/ITC Fenice Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ITC Fenice Bold';
+  src: url('./fonts/ITC Fenice Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply w-full h-full m-0 p-0;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-family: 'ITC Fenice', 'Times New Roman', Times, serif;
+  }
+}
+
+html {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
