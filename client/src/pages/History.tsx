@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, Container, Link, Avatar, Grid, Chip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
@@ -16,6 +16,7 @@ interface Nomination {
   tmdbMovieId: number;
   title: string;
   posterUrl: string | null;
+  backdropUrl?: string | null;
   user: {
     id: number;
     username: string;
@@ -27,6 +28,7 @@ interface PastWeek {
   id: number;
   startDate: string;
   isActive: boolean;
+  theme?: string | null;
   nominations: Nomination[];
 }
 
@@ -65,19 +67,17 @@ export default function History() {
           <span>Back to Dashboard</span>
         </Link>
 
-        <Typography variant="h3" fontWeight="bold" color="primary.main" gutterBottom textAlign="center" sx={{ textShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+        <Typography variant="h3" align="center" gutterBottom sx={{ color: "primary.main", fontWeight: "bold", textShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
           Previous Weeks
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary" textAlign="center" sx={{ mb: 6 }}>
+        <Typography variant="subtitle1" sx={{ color: "text.secondary", textAlign: "center", mb: 6 }}>
           An archive of past nominations and winners.
         </Typography>
 
         {loading ? (
-          <Typography textAlign="center">Loading archives...</Typography>
+          <Typography sx={{ textAlign: "center" }}>Loading archives...</Typography>
         ) : weeks.length === 0 ? (
-          <Typography textAlign="center" color="text.secondary" fontStyle="italic">
-            The archives are empty. Check back when a week has ended!
-          </Typography>
+          <Typography sx={{ color: "text.secondary", textAlign: "center", fontStyle: "italic" }}>The archives are empty. Check back when a week has ended!</Typography>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {weeks.map((week, index) => {
@@ -125,16 +125,12 @@ export default function History() {
 
                   <Box sx={{ position: "relative", zIndex: 2 }}>
                     <Box sx={{ mb: 3, borderBottom: "1px solid rgba(255,255,255,0.2)", pb: 1 }}>
-                      <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                      >
+                      <Typography variant="h5" sx={{ fontWeight: "bold", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         Week of {new Date(week.startDate).toLocaleDateString()}
                         <Chip size="small" label={`Week #${weeks.length - index}`} sx={{ bgcolor: "secondary.main", color: "white", fontWeight: "bold" }} />
                       </Typography>
                       {week.theme && (
-                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "rgba(255,255,255,0.8)", mt: 0.5, fontStyle: "italic" }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "rgba(255,255,255,0.8)", mt: 0.5, fontStyle: "italic" }}>
                           Theme: "{week.theme}"
                         </Typography>
                       )}
@@ -143,7 +139,7 @@ export default function History() {
                     {winner && winner.votes.length > 0 ? (
                       <Grid container spacing={4}>
                         {/* Winner Showcase */}
-                        <Grid item xs={12} md={5}>
+                        <Grid size={{ xs: 12, md: 5 }}>
                           <Box sx={{ position: "relative" }}>
                             <Box
                               sx={{
@@ -173,7 +169,7 @@ export default function History() {
                         </Grid>
 
                         {/* Winner Details & Runners Up */}
-                        <Grid item xs={12} md={7} sx={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                        <Grid size={{ xs: 12, md: 7 }} sx={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
                           <Box sx={{ mb: 4 }}>
                             <Typography variant="overline" color="secondary.main" sx={{ fontWeight: "bold", letterSpacing: 2 }}>
                               Winner
@@ -192,7 +188,7 @@ export default function History() {
                                 Runners Up
                               </Typography>
                               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                {runnersUp.map((nom, i) => (
+                                {runnersUp.map((nom) => (
                                   <Box key={nom.id} sx={{ display: "flex", alignItems: "center", p: 1, bgcolor: "rgba(255,255,255,0.1)", borderRadius: 2 }}>
                                     <Avatar variant="rounded" src={nom.posterUrl || ""} sx={{ width: 30, height: 45, mr: 1.5 }} />
                                     <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
@@ -211,7 +207,7 @@ export default function History() {
                         </Grid>
                       </Grid>
                     ) : (
-                      <Typography fontStyle="italic" sx={{ color: "rgba(255,255,255,0.7)" }}>
+                      <Typography sx={{ fontStyle: "italic", color: "rgba(255,255,255,0.7)" }}>
                         No votes were cast this week.
                       </Typography>
                     )}

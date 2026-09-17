@@ -35,8 +35,8 @@ export default function Nominate() {
         const res = await api.get("/nominations");
         const myNominations = res.data.filter((n: any) => n.userId === user.id);
         setNominationCount(myNominations.length);
-      } catch (err) {
-        console.error("Failed to fetch nominations count", err);
+      } catch (_err) {
+        console.error("Failed to fetch nominations count", _err);
       }
     };
     fetchNominations();
@@ -55,7 +55,7 @@ export default function Nominate() {
         const res = await api.get(`/movies/search?query=${encodeURIComponent(searchQuery)}`);
         dispatch(setSearchResults(res.data.results));
         dispatch(setShowAll(true));
-      } catch (err) {
+      } catch (_err) {
         setError("Failed to search movies");
       } finally {
         setIsSearching(false);
@@ -72,7 +72,7 @@ export default function Nominate() {
     try {
       const res = await api.get(`/movies/search?query=${encodeURIComponent(searchQuery)}`);
       dispatch(setSearchResults(res.data.results));
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to search movies");
     } finally {
       setIsSearching(false);
@@ -187,7 +187,12 @@ export default function Nominate() {
                         {movie.director ? ` • Dir. ${movie.director}` : ""}
                       </>
                     }
-                    primaryTypographyProps={{ variant: "subtitle2", fontWeight: "bold" }}
+                    slotProps={{
+                      primary: {
+                        variant: "subtitle2",
+                        sx: { fontWeight: "bold" },
+                      },
+                    }}
                   />
                 </ListItem>
               ))}

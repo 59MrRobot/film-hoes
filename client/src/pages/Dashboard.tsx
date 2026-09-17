@@ -6,29 +6,20 @@ import {
   AppBar,
   Toolbar,
   Button,
-  Grid,
   Box,
   Typography,
   Avatar,
   Container,
   Alert,
-  IconButton,
   Menu,
   MenuItem,
   TextField,
-  InputAdornment,
   List,
   ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
   Autocomplete,
   CircularProgress,
   Accordion,
@@ -38,7 +29,6 @@ import {
   FormControlLabel,
   DialogContentText,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import LocalMoviesIcon from "@mui/icons-material/LocalMovies";
 import CustomButton from "../components/CustomButton";
@@ -54,6 +44,7 @@ interface Nomination {
   tmdbMovieId: number;
   title: string;
   posterUrl: string | null;
+  backdropUrl: string | null;
   user: {
     id: number;
     username: string;
@@ -83,8 +74,6 @@ export default function Dashboard() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
-  // When false, limit dropdown suggestions to 10 items
-  const [showAll, setShowAll] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -93,8 +82,8 @@ export default function Dashboard() {
         setLatestWeek(latestRes.data);
         setNominations(latestRes.data.nominations || []);
       }
-    } catch (err) {
-      console.error("Failed to fetch dashboard data", err);
+    } catch (_err) {
+      console.error("Failed to fetch dashboard data", _err);
     }
   };
 
@@ -109,8 +98,8 @@ export default function Dashboard() {
       try {
         const res = await api.get(`/movies/keywords?query=${encodeURIComponent(keywordQuery)}`);
         setKeywordOptions(res.data);
-      } catch (err) {
-        console.error("Failed to fetch keywords", err);
+      } catch (_err) {
+        console.error("Failed to fetch keywords", _err);
       } finally {
         setIsSearchingKeywords(false);
       }
@@ -134,7 +123,7 @@ export default function Dashboard() {
       try {
         const res = await api.get(`/movies/search?query=${encodeURIComponent(searchQuery)}`);
         setSearchResults(res.data.results);
-      } catch (err) {
+      } catch (_err) {
         setError("Failed to search movies");
       } finally {
         setIsSearching(false);
@@ -143,45 +132,13 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Retain manual search via button if needed
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // The debounce effect will handle searching; this ensures immediate search on button click
-    if (!searchQuery.trim()) return;
-    setIsSearching(true);
-    setError("");
-    try {
-      const res = await api.get(`/movies/search?query=${encodeURIComponent(searchQuery)}`);
-      setSearchResults(res.data.results);
-    } catch (err) {
-      setError("Failed to search movies");
-    } finally {
-      setIsSearching(false);
-    }
-  };
-  const nominateMovie = async (movie: any) => {
-    try {
-      setError("");
-      await api.post("/nominations", {
-        tmdbMovieId: movie.tmdbId,
-        title: movie.title,
-        posterUrl: movie.posterUrl,
-      });
-      setSearchResults([]);
-      setSearchQuery("");
-      fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to nominate movie");
-    }
-  };
-
   const castVote = async (nominationId: number) => {
     try {
       setError("");
       await api.post("/votes", { nominationId });
       fetchData(); // refresh votes
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to cast vote");
+    } catch (_err: any) {
+      setError(_err.response?.data?.error || "Failed to cast vote");
     }
   };
 
@@ -206,8 +163,8 @@ export default function Dashboard() {
       setError("");
       await api.delete(`/nominations/${nominationId}`);
       navigate("/nominate");
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to replace nomination");
+    } catch (_err: any) {
+      setError(_err.response?.data?.error || "Failed to replace nomination");
     }
   };
 
@@ -217,8 +174,8 @@ export default function Dashboard() {
     try {
       await api.post("/nominations/end-week");
       fetchData();
-    } catch (err) {
-      console.error("Failed to end week", err);
+    } catch (_err) {
+      console.error("Failed to end week", _err);
       setError("Failed to end the week");
     }
   };
@@ -235,8 +192,8 @@ export default function Dashboard() {
       setSelectedTheme(null);
       setKeywordQuery("");
       fetchData();
-    } catch (err) {
-      console.error("Failed to start week", err);
+    } catch (_err) {
+      console.error("Failed to start week", _err);
       setError("Failed to start the new week");
     }
   };
@@ -247,8 +204,8 @@ export default function Dashboard() {
     try {
       const res = await api.get("/users");
       setUsersList(res.data);
-    } catch (err) {
-      console.error("Failed to fetch users", err);
+    } catch (_err) {
+      console.error("Failed to fetch users", _err);
     } finally {
       setIsFetchingUsers(false);
     }
@@ -258,8 +215,8 @@ export default function Dashboard() {
     try {
       const res = await api.put(`/users/${userId}/role`, { isAdmin: !currentStatus });
       setUsersList(usersList.map((u) => (u.id === userId ? { ...u, isAdmin: res.data.isAdmin } : u)));
-    } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to update user role");
+    } catch (_err: any) {
+      alert(_err.response?.data?.error || "Failed to update user role");
     }
   };
 
@@ -330,7 +287,7 @@ export default function Dashboard() {
                   {!nom.posterUrl && "Img"}
                 </Avatar>
                 <Box>
-                  <Typography variant="h6" fontWeight="bold" sx={{ lineHeight: 1.2, mb: 0.5 }}>
+                  <Typography variant="h6" sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}>
                     <RouterLink to={`/film/${nom.tmdbMovieId}-${generateSlug(nom.title)}`} style={{ textDecoration: "none", color: "inherit" }}>
                       {nom.title}
                     </RouterLink>
@@ -356,7 +313,7 @@ export default function Dashboard() {
                   minWidth: 100,
                 }}
               >
-                <Typography variant="body2" fontWeight="bold" color="text.secondary" sx={{ mb: { xs: 0, sm: 1 } }}>
+                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.secondary", mb: { xs: 0, sm: 1 } }}>
                   {nom.votes.length} votes
                 </Typography>
                 {isOwn && totalVotesThisWeek === 0 ? (
@@ -399,7 +356,11 @@ export default function Dashboard() {
       )}
 
       <Box sx={{ position: "relative", zIndex: 1 }}>
-        <AppBar position="static" elevation={0} sx={{ bgcolor: "rgba(232, 221, 204, 0.6)", backdropFilter: "blur(12px)", color: "text.primary", borderBottom: "1px solid rgba(255,255,255,0.3)", boxShadow: "0 4px 30px rgba(0,0,0,0.03)" }}>
+        <AppBar
+          position="static"
+          elevation={0}
+          sx={{ bgcolor: "rgba(232, 221, 204, 0.6)", backdropFilter: "blur(12px)", color: "text.primary", borderBottom: "1px solid rgba(255,255,255,0.3)", boxShadow: "0 4px 30px rgba(0,0,0,0.03)" }}
+        >
           <Container maxWidth="xl">
             <Toolbar disableGutters>
               {/* Logo / Branding */}
@@ -428,57 +389,57 @@ export default function Dashboard() {
                   "&:hover": { bgcolor: "rgba(255,255,255,0.8)", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" },
                 }}
               >
-                <Typography variant="body2" fontWeight="bold" sx={{ color: "text.primary" }}>
+                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.primary" }}>
                   Hi, {user?.username}
                 </Typography>
                 <Avatar sx={{ width: 34, height: 34, bgcolor: "primary.main", fontSize: "1rem", boxShadow: 1 }}>{user?.username?.[0]?.toUpperCase()}</Avatar>
               </Box>
 
               <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              slotProps={{ paper: { sx: { mt: 1, minWidth: 120 } } }}
-            >
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  navigate("/profile");
-                }}
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
+                slotProps={{ paper: { sx: { mt: 1, minWidth: 120 } } }}
               >
-                Profile
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  navigate("/history");
-                }}
-              >
-                Previous Weeks
-              </MenuItem>
-              {user?.isAdmin && (
                 <MenuItem
                   onClick={() => {
                     handleClose();
-                    handleOpenManageUsers();
+                    navigate("/profile");
                   }}
                 >
-                  Manage Users
+                  Profile
                 </MenuItem>
-              )}
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  logout();
-                }}
-                sx={{ color: "error.main" }}
-              >
-                Sign out
-              </MenuItem>
-            </Menu>
-          </Toolbar>
+                <MenuItem
+                  onClick={() => {
+                    handleClose();
+                    navigate("/history");
+                  }}
+                >
+                  Previous Weeks
+                </MenuItem>
+                {user?.isAdmin && (
+                  <MenuItem
+                    onClick={() => {
+                      handleClose();
+                      handleOpenManageUsers();
+                    }}
+                  >
+                    Manage Users
+                  </MenuItem>
+                )}
+                <MenuItem
+                  onClick={() => {
+                    handleClose();
+                    logout();
+                  }}
+                  sx={{ color: "error.main" }}
+                >
+                  Sign out
+                </MenuItem>
+              </Menu>
+            </Toolbar>
           </Container>
         </AppBar>
 
@@ -491,11 +452,11 @@ export default function Dashboard() {
 
           <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
             <Box>
-              <Typography variant="overline" color="text.secondary" fontWeight="bold" letterSpacing={2}>
+              <Typography variant="overline" sx={{ fontWeight: "bold", color: "text.secondary", letterSpacing: 2 }}>
                 {/* {latestWeek?.isActive ? "This Week's Theme" : "Previous Week's Theme"} */}
                 This Week's Theme
               </Typography>
-              <Typography variant="h4" fontWeight="bold" color="primary.main" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="h4" sx={{ display: "flex", alignItems: "center", gap: 1, fontWeight: "bold", color: "primary.main" }}>
                 {latestWeek?.theme ? `"${latestWeek.theme}"` : "Open Theme"}
               </Typography>
               {!latestWeek?.isActive && (
@@ -528,9 +489,8 @@ export default function Dashboard() {
               <Box sx={{ p: 3, bgcolor: "rgba(255,255,255,0.5)", borderRadius: 3, border: "1px solid", borderColor: "divider", height: "100%" }}>
                 <Typography
                   variant={latestWeek?.isActive ? "h6" : "h4"}
-                  fontWeight="bold"
                   gutterBottom
-                  sx={{ display: "flex", alignItems: "center", justifyContent: latestWeek?.isActive ? "flex-start" : "center", gap: 1, mb: latestWeek?.isActive ? 1 : 3 }}
+                  sx={{ display: "flex", alignItems: "center", justifyContent: latestWeek?.isActive ? "flex-start" : "center", gap: 1, mb: latestWeek?.isActive ? 1 : 3, fontWeight: "bold" }}
                 >
                   {latestWeek?.isActive ? "Top 3 Leaders" : "Final Leaderboard"}
                 </Typography>
@@ -540,110 +500,138 @@ export default function Dashboard() {
                     No votes cast yet this week.
                   </Typography>
                 ) : (
-                <List sx={{ p: 0, mt: latestWeek?.isActive ? 2 : 6, display: latestWeek?.isActive ? "block" : "flex", flexDirection: { xs: "column", md: "row" }, gap: latestWeek?.isActive ? 0 : 3, justifyContent: "center", alignItems: "flex-end" }}>
-                  {top3.map((nom, index) => {
-                    if (nom.votes.length === 0) return null; // Only show movies with actual votes
-                    const isEnded = !latestWeek?.isActive;
-                    const order = index === 0 ? 2 : index === 1 ? 1 : 3;
+                  <List
+                    sx={{
+                      p: 0,
+                      mt: latestWeek?.isActive ? 2 : 6,
+                      display: latestWeek?.isActive ? "block" : "flex",
+                      flexDirection: { xs: "column", md: "row" },
+                      gap: latestWeek?.isActive ? 0 : 3,
+                      justifyContent: "center",
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    {top3.map((nom, index) => {
+                      if (nom.votes.length === 0) return null; // Only show movies with actual votes
+                      const isEnded = !latestWeek?.isActive;
+                      const order = index === 0 ? 2 : index === 1 ? 1 : 3;
 
-                    return (
-                      <ListItem
-                        key={`top3-${nom.id}`}
-                        sx={{
-                          p: isEnded ? 3 : (index === 0 ? 1.5 : 1),
-                          mb: latestWeek?.isActive ? 2 : 0,
-                          display: "flex",
-                          flexDirection: isEnded ? "column" : "row",
-                          alignItems: "center",
-                          order: isEnded ? { xs: index, md: order } : undefined, // Stack normally on mobile, podium on desktop
-                          background: isEnded
-                            ? (index === 0 ? "linear-gradient(135deg, rgba(212, 168, 67, 0.2) 0%, rgba(212, 168, 67, 0.05) 100%)"
-                              : index === 1 ? "linear-gradient(135deg, rgba(192, 192, 192, 0.2) 0%, rgba(192, 192, 192, 0.02) 100%)"
-                              : "linear-gradient(135deg, rgba(205, 127, 50, 0.2) 0%, rgba(205, 127, 50, 0.02) 100%)")
-                            : (index === 0 ? "rgba(212, 168, 67, 0.1)" : "transparent"),
-                          backdropFilter: isEnded ? "blur(10px)" : "none",
-                          borderRadius: 3,
-                          border: isEnded
-                            ? `1px solid ${index === 0 ? "rgba(212, 168, 67, 0.5)" : index === 1 ? "rgba(192, 192, 192, 0.5)" : "rgba(205, 127, 50, 0.5)"}`
-                            : (index === 0 ? "1px solid rgba(212, 168, 67, 0.4)" : "1px solid transparent"),
-                          boxShadow: isEnded
-                            ? (index === 0 ? "0 8px 32px rgba(212, 168, 67, 0.2)" : "0 4px 16px rgba(0,0,0,0.1)")
-                            : "none",
-                          position: "relative",
-                          overflow: "visible",
-                          transition: "all 0.3s",
-                          width: latestWeek?.isActive ? "100%" : { xs: "100%", md: "30%" },
-                          transform: isEnded && index === 0 ? { xs: "none", md: "translateY(-20px)" } : "none",
-                          "&:hover": { 
-                            bgcolor: isEnded ? undefined : (index === 0 ? "rgba(212, 168, 67, 0.15)" : "rgba(0,0,0,0.02)"),
-                            transform: isEnded ? (index === 0 ? { xs: "translateY(-4px)", md: "translateY(-24px)" } : "translateY(-4px)") : undefined
-                          }
-                        }}
-                      >
-                        {/* Rank Badge */}
-                        {!isEnded && index === 0 && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: 0,
-                              right: 0,
-                              px: 1,
-                              py: 0.25,
-                              bgcolor: "secondary.main",
-                              color: "white",
-                              borderRadius: "0 8px 0 8px",
-                              fontSize: "0.6rem",
-                              fontWeight: "bold",
-                              textTransform: "uppercase",
-                              letterSpacing: 1,
-                            }}
-                          >
-                            Current Leader
-                          </Box>
-                        )}
-                        
-                        {isEnded && (
-                          <Box sx={{ position: "absolute", top: -12, bgcolor: index === 0 ? "#d4a843" : index === 1 ? "#a0a0a0" : "#cd7f32", color: "white", px: 2, py: 0.5, borderRadius: 4, fontWeight: "bold", fontSize: "0.75rem", textTransform: "uppercase", boxShadow: 2, zIndex: 1 }}>
-                            {index === 0 ? "Winner" : index === 1 ? "2nd Place" : "3rd Place"}
-                          </Box>
-                        )}
-
-                        {!isEnded && (
-                          <Typography
-                            variant={index === 0 ? "h4" : "h6"}
-                            fontWeight="bold"
-                            color={index === 0 ? "secondary.main" : "text.secondary"}
-                            sx={{ width: index === 0 ? 36 : 28, flexShrink: 0, textAlign: "center" }}
-                          >
-                            {index + 1}
-                          </Typography>
-                        )}
-
-                        <Avatar
-                          variant="rounded"
-                          src={nom.posterUrl || ""}
+                      return (
+                        <ListItem
+                          key={`top3-${nom.id}`}
                           sx={{
-                            width: isEnded ? (index === 0 ? 120 : 90) : (index === 0 ? 50 : 40),
-                            height: isEnded ? (index === 0 ? 180 : 135) : (index === 0 ? 75 : 60),
-                            mx: isEnded ? "auto" : 1.5,
-                            mb: isEnded ? 2 : 0,
-                            mt: isEnded ? 1 : 0,
-                            boxShadow: isEnded ? 3 : (index === 0 ? "0 4px 10px rgba(212, 168, 67, 0.4)" : 1),
+                            p: isEnded ? 3 : index === 0 ? 1.5 : 1,
+                            mb: latestWeek?.isActive ? 2 : 0,
+                            display: "flex",
+                            flexDirection: isEnded ? "column" : "row",
+                            alignItems: "center",
+                            order: isEnded ? { xs: index, md: order } : undefined, // Stack normally on mobile, podium on desktop
+                            background: isEnded
+                              ? index === 0
+                                ? "linear-gradient(135deg, rgba(212, 168, 67, 0.2) 0%, rgba(212, 168, 67, 0.05) 100%)"
+                                : index === 1
+                                  ? "linear-gradient(135deg, rgba(192, 192, 192, 0.2) 0%, rgba(192, 192, 192, 0.02) 100%)"
+                                  : "linear-gradient(135deg, rgba(205, 127, 50, 0.2) 0%, rgba(205, 127, 50, 0.02) 100%)"
+                              : index === 0
+                                ? "rgba(212, 168, 67, 0.1)"
+                                : "transparent",
+                            backdropFilter: isEnded ? "blur(10px)" : "none",
+                            borderRadius: 3,
+                            border: isEnded
+                              ? `1px solid ${index === 0 ? "rgba(212, 168, 67, 0.5)" : index === 1 ? "rgba(192, 192, 192, 0.5)" : "rgba(205, 127, 50, 0.5)"}`
+                              : index === 0
+                                ? "1px solid rgba(212, 168, 67, 0.4)"
+                                : "1px solid transparent",
+                            boxShadow: isEnded ? (index === 0 ? "0 8px 32px rgba(212, 168, 67, 0.2)" : "0 4px 16px rgba(0,0,0,0.1)") : "none",
+                            position: "relative",
+                            overflow: "visible",
+                            transition: "all 0.3s",
+                            width: latestWeek?.isActive ? "100%" : { xs: "100%", md: "30%" },
+                            transform: isEnded && index === 0 ? { xs: "none", md: "translateY(-20px)" } : "none",
+                            "&:hover": {
+                              bgcolor: isEnded ? undefined : index === 0 ? "rgba(212, 168, 67, 0.15)" : "rgba(0,0,0,0.02)",
+                              transform: isEnded ? (index === 0 ? { xs: "translateY(-4px)", md: "translateY(-24px)" } : "translateY(-4px)") : undefined,
+                            },
                           }}
-                        />
+                        >
+                          {/* Rank Badge */}
+                          {!isEnded && index === 0 && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                top: 0,
+                                right: 0,
+                                px: 1,
+                                py: 0.25,
+                                bgcolor: "secondary.main",
+                                color: "white",
+                                borderRadius: "0 8px 0 8px",
+                                fontSize: "0.6rem",
+                                fontWeight: "bold",
+                                textTransform: "uppercase",
+                                letterSpacing: 1,
+                              }}
+                            >
+                              Current Leader
+                            </Box>
+                          )}
 
-                        <Box sx={{ flexGrow: 1, overflow: "hidden", textAlign: isEnded ? "center" : "left", width: "100%" }}>
-                          <Typography variant={isEnded ? (index === 0 ? "h5" : "h6") : (index === 0 ? "subtitle1" : "subtitle2")} fontWeight="bold" sx={{ lineHeight: 1.2, mb: isEnded ? 1 : 0 }}>
-                            {nom.title}
-                          </Typography>
-                          <Typography variant={isEnded ? "body2" : "caption"} color="text.secondary" sx={{ fontWeight: index === 0 ? "bold" : "normal" }}>
-                            {nom.votes.length} {nom.votes.length === 1 ? "vote" : "votes"}
-                          </Typography>
-                        </Box>
-                      </ListItem>
-                    );
-                  })}
-                </List>
+                          {isEnded && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                top: -12,
+                                bgcolor: index === 0 ? "#d4a843" : index === 1 ? "#a0a0a0" : "#cd7f32",
+                                color: "white",
+                                px: 2,
+                                py: 0.5,
+                                borderRadius: 4,
+                                fontWeight: "bold",
+                                fontSize: "0.75rem",
+                                textTransform: "uppercase",
+                                boxShadow: 2,
+                                zIndex: 1,
+                              }}
+                            >
+                              {index === 0 ? "Winner" : index === 1 ? "2nd Place" : "3rd Place"}
+                            </Box>
+                          )}
+
+                          {!isEnded && (
+                            <Typography
+                              variant={index === 0 ? "h4" : "h6"}
+                              color={index === 0 ? "secondary.main" : "text.secondary"}
+                              sx={{ width: index === 0 ? 36 : 28, flexShrink: 0, textAlign: "center", fontWeight: "bold" }}
+                            >
+                              {index + 1}
+                            </Typography>
+                          )}
+
+                          <Avatar
+                            variant="rounded"
+                            src={nom.posterUrl || ""}
+                            sx={{
+                              width: isEnded ? (index === 0 ? 120 : 90) : index === 0 ? 50 : 40,
+                              height: isEnded ? (index === 0 ? 180 : 135) : index === 0 ? 75 : 60,
+                              mx: isEnded ? "auto" : 1.5,
+                              mb: isEnded ? 2 : 0,
+                              mt: isEnded ? 1 : 0,
+                              boxShadow: isEnded ? 3 : index === 0 ? "0 4px 10px rgba(212, 168, 67, 0.4)" : 1,
+                            }}
+                          />
+
+                          <Box sx={{ flexGrow: 1, overflow: "hidden", textAlign: isEnded ? "center" : "left", width: "100%" }}>
+                            <Typography variant={isEnded ? (index === 0 ? "h5" : "h6") : index === 0 ? "subtitle1" : "subtitle2"} sx={{ fontWeight: "bold", lineHeight: 1.2, mb: isEnded ? 1 : 0 }}>
+                              {nom.title}
+                            </Typography>
+                            <Typography variant={isEnded ? "body2" : "caption"} color="text.secondary" sx={{ fontWeight: index === 0 ? "bold" : "normal" }}>
+                              {nom.votes.length} {nom.votes.length === 1 ? "vote" : "votes"}
+                            </Typography>
+                          </Box>
+                        </ListItem>
+                      );
+                    })}
+                  </List>
                 )}
               </Box>
             </Box>
@@ -653,7 +641,7 @@ export default function Dashboard() {
               {latestWeek?.isActive ? (
                 <Box sx={{ p: 0, minHeight: "100%" }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ m: 0 }}>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", m: 0 }}>
                       This Week's Nominations
                     </Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -688,7 +676,7 @@ export default function Dashboard() {
               ) : (
                 <Accordion sx={{ bgcolor: "rgba(255,255,255,0.5)", borderRadius: 3, border: "1px solid", borderColor: "divider", boxShadow: "none", "&:before": { display: "none" }, mt: 4 }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                    <Typography variant="h6" color="text.secondary" sx={{ fontWeight: "bold" }}>
                       View All {nominations.length} Nominations
                     </Typography>
                   </AccordionSummary>
@@ -712,11 +700,11 @@ export default function Dashboard() {
               options={keywordOptions}
               getOptionLabel={(option) => option.name}
               value={selectedTheme}
-              onChange={(event, newValue) => {
+              onChange={(_, newValue) => {
                 setSelectedTheme(newValue);
               }}
               inputValue={keywordQuery}
-              onInputChange={(event, newInputValue) => {
+              onInputChange={(_, newInputValue) => {
                 setKeywordQuery(newInputValue);
               }}
               isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -765,7 +753,7 @@ export default function Dashboard() {
                   <ListItem key={u.id} sx={{ mb: 1, border: "1px solid", borderColor: "divider", borderRadius: 2, display: "flex", justifyContent: "space-between" }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: "0.9rem" }}>{u.username[0]?.toUpperCase()}</Avatar>
-                      <Typography fontWeight="bold">{u.username}</Typography>
+                      <Typography sx={{ fontWeight: "bold" }}>{u.username}</Typography>
                     </Box>
                     <FormControlLabel
                       control={<Switch checked={u.isAdmin} onChange={() => handleToggleAdmin(u.id, u.isAdmin)} disabled={u.id === user?.id} color="secondary" />}

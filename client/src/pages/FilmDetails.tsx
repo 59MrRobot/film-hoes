@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Container, Paper, Typography, CircularProgress, Alert, Link } from "@mui/material";
+import { Box, Container, Typography, CircularProgress, Alert, Link } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import api from "../api";
 import CustomButton from "../components/CustomButton";
@@ -28,8 +28,8 @@ export default function FilmDetails() {
         backdropUrl: movie.backdropUrl,
       });
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to nominate movie");
+    } catch (_err: any) {
+      setError(_err.response?.data?.error || "Failed to nominate movie");
     } finally {
       setNominating(false);
     }
@@ -42,14 +42,14 @@ export default function FilmDetails() {
         setLoading(true);
         // Extract the tmdbId from the start of the slug (e.g., "12345-dune")
         const tmdbId = slug.split("-")[0];
-        
+
         if (tmdbId) {
           const detailsRes = await api.get(`/movies/${tmdbId}`);
           setMovie(detailsRes.data);
         } else {
           setError("Invalid movie ID.");
         }
-      } catch (err) {
+      } catch (_err) {
         setError("Failed to fetch movie details.");
       } finally {
         setLoading(false);
@@ -64,7 +64,7 @@ export default function FilmDetails() {
       try {
         const res = await api.get("/nominations");
         const nominations = res.data;
-        
+
         // Check if the movie is already nominated
         const isNominated = nominations.some((n: any) => Number(n.tmdbMovieId) === Number(movie.tmdbId));
         if (isNominated) {
@@ -76,8 +76,8 @@ export default function FilmDetails() {
         if (myNominationsCount >= 2) {
           setMaxNominationsReached(true);
         }
-      } catch (err) {
-        console.error("Failed to check nomination status", err);
+      } catch (_err) {
+        console.error("Failed to check nomination status", _err);
       }
     };
     checkNominationStatus();
@@ -113,7 +113,11 @@ export default function FilmDetails() {
         />
       )}
       <Container maxWidth="md" sx={{ position: "relative", zIndex: 1, pt: { xs: 8, md: 20 }, pb: 2 }}>
-        <Link component="button" onClick={() => navigate(-1)} sx={{ display: "flex", alignItems: "center", mb: 3, cursor: "pointer", textDecoration: "none", color: "text.secondary", transition: "color 0.2s", "&:hover": { color: "text.primary" } }}>
+        <Link
+          component="button"
+          onClick={() => navigate(-1)}
+          sx={{ display: "flex", alignItems: "center", mb: 3, cursor: "pointer", textDecoration: "none", color: "text.secondary", transition: "color 0.2s", "&:hover": { color: "text.primary" } }}
+        >
           <ArrowBackIcon fontSize="small" sx={{ mr: 0.5 }} />
           <span>Back</span>
         </Link>
@@ -136,26 +140,28 @@ export default function FilmDetails() {
                 alignSelf: { xs: "center", md: "flex-start" },
               }}
             />
-            <Box sx={{ 
-              flexGrow: 1, 
-              display: "flex", 
-              flexDirection: "column", 
-              position: "relative",
-              p: { xs: 2, md: 4 }, 
-              borderRadius: 3,
-              zIndex: 1,
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                inset: 0,
-                bgcolor: "rgba(250, 246, 240, 0.65)",
-                backdropFilter: "blur(10px)",
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
+                p: { xs: 2, md: 4 },
                 borderRadius: 3,
-                zIndex: -1,
-                pointerEvents: "none"
-              }
-            }}>
-              <Typography variant="h3" fontWeight="bold" fontFamily="'ITC Fenice Bold', serif" color="primary.main" gutterBottom sx={{ textShadow: "0px 1px 2px rgba(255,255,255,0.8)" }}>
+                zIndex: 1,
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  inset: 0,
+                  bgcolor: "rgba(250, 246, 240, 0.65)",
+                  backdropFilter: "blur(10px)",
+                  borderRadius: 3,
+                  zIndex: -1,
+                  pointerEvents: "none",
+                },
+              }}
+            >
+              <Typography variant="h3" gutterBottom sx={{ textShadow: "0px 1px 2px rgba(255,255,255,0.8)", color: "primary.main", fontWeight: "bold", fontFamily: "'ITC Fenice Bold" }}>
                 {movie.title}
               </Typography>
               <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -169,7 +175,7 @@ export default function FilmDetails() {
               </Typography>
 
               <Box sx={{ my: 3 }}>
-                <Typography variant="h6" fontWeight="bold" color="primary.main" gutterBottom>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
                   Overview
                 </Typography>
                 <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
@@ -179,7 +185,7 @@ export default function FilmDetails() {
 
               {movie.cast && movie.cast.length > 0 && (
                 <Box sx={{ mt: 1 }}>
-                  <Typography variant="h6" fontWeight="bold" color="primary.main" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
                     Cast
                   </Typography>
                   <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
@@ -190,7 +196,7 @@ export default function FilmDetails() {
 
               {movie.trailerKey && (
                 <Box sx={{ mt: 4 }}>
-                  <Typography variant="h6" fontWeight="bold" color="primary.main" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
                     Trailer
                   </Typography>
                   <Box sx={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: 2, overflow: "hidden", boxShadow: 2 }}>
@@ -213,15 +219,17 @@ export default function FilmDetails() {
                   label={nominating ? "Nominating..." : success ? "Nominated!" : maxNominationsReached ? "Limit Reached" : "Nominate Movie"}
                   onClick={handleNominate}
                   disabled={nominating || success || maxNominationsReached}
-                  sx={{ 
-                    width: { xs: "100%", sm: 250 }, 
-                    py: 1.5, 
-                    fontWeight: "bold", 
+                  sx={{
+                    width: { xs: "100%", sm: 250 },
+                    py: 1.5,
+                    fontWeight: "bold",
                     fontSize: "1.1rem",
-                    "&.Mui-disabled": success ? {
-                      bgcolor: "success.main",
-                      color: "white"
-                    } : undefined
+                    "&.Mui-disabled": success
+                      ? {
+                          bgcolor: "success.main",
+                          color: "white",
+                        }
+                      : undefined,
                   }}
                 />
               </Box>
