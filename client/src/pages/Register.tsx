@@ -68,15 +68,28 @@ export default function Register() {
           gap: 3,
         }}
       >
-        <Box textAlign="center">
-          <Typography variant="h4" component="h1" fontFamily="'ITC Fenice Bold', serif" color="white" gutterBottom>
+        <Box sx={{ textAlign: "center" }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            gutterBottom
+            sx={{ fontFamily: "'ITC Fenice Bold', serif", color: "white" }}
+          >
             Join Film Hoes
           </Typography>
         </Box>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {error && (
-            <Box bgcolor="rgba(211, 47, 47, 0.8)" color="white" p={1.5} borderRadius={1} textAlign="center">
+            <Box
+              sx={{
+                bgcolor: "rgba(211, 47, 47, 0.8)",
+                color: "white",
+                p: 1.5,
+                borderRadius: 1,
+                textAlign: "center",
+              }}
+            >
               <Typography variant="body2">{error}</Typography>
             </Box>
           )}
@@ -163,7 +176,7 @@ export default function Register() {
 
           <CustomButton type="submit" size="large" label="Register" fullWidth />
 
-          <Box textAlign="center">
+          <Box sx={{ textAlign: "center" }}>
             <Link component={RouterLink} to="/login" sx={{ color: "secondary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
               Already have an account? Sign in.
             </Link>

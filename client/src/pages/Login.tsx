@@ -118,7 +118,15 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {error && (
-            <Box bgcolor="rgba(211, 47, 47, 0.8)" color="white" p={1.5} borderRadius={1} textAlign="center">
+            <Box
+              sx={{
+                bgcolor: "rgba(211, 47, 47, 0.8)",
+                color: "white",
+                p: 1.5,
+                borderRadius: 1,
+                textAlign: "center",
+              }}
+            >
               <Typography variant="body2">{error}</Typography>
             </Box>
           )}
@@ -169,7 +177,7 @@ export default function Login() {
 
           <CustomButton type="submit" size="large" label="Sign In" fullWidth />
 
-          <Box textAlign="center" sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", gap: 1 }}>
             <Link component="button" type="button" variant="body2" onClick={() => { setForgotDialogOpen(true); setForgotStep(1); setForgotError(""); setForgotSuccess(""); }} sx={{ color: "text.secondary", textDecoration: "none", "&:hover": { textDecoration: "underline", color: "white" } }}>
               Forgot Password?
             </Link>
@@ -185,13 +193,30 @@ export default function Login() {
         <DialogTitle sx={{ fontWeight: "bold", fontFamily: "'ITC Fenice Bold', serif" }}>Reset Password</DialogTitle>
         <DialogContent sx={{ mt: 1 }}>
           {forgotSuccess ? (
-            <Box bgcolor="rgba(46, 125, 50, 0.1)" color="success.main" p={2} borderRadius={2} textAlign="center">
-              <Typography fontWeight="bold">{forgotSuccess}</Typography>
+            <Box
+              sx={{
+                bgcolor: "rgba(46, 125, 50, 0.1)",
+                color: "success.main",
+                p: 2,
+                borderRadius: 2,
+                textAlign: "center",
+              }}
+            >
+              <Typography sx={{ fontWeight: "bold" }}>{forgotSuccess}</Typography>
             </Box>
           ) : (
             <>
               {forgotError && (
-                <Box bgcolor="rgba(211, 47, 47, 0.1)" color="error.main" p={2} borderRadius={2} mb={2} textAlign="center">
+                <Box
+                  sx={{
+                    bgcolor: "rgba(211, 47, 47, 0.1)",
+                    color: "error.main",
+                    p: 2,
+                    borderRadius: 2,
+                    mb: 2,
+                    textAlign: "center",
+                  }}
+                >
                   <Typography variant="body2">{forgotError}</Typography>
                 </Box>
               )}
