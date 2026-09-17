@@ -9,15 +9,15 @@ import CustomButton from "../components/CustomButton";
 export default function Profile() {
   const navigate = useNavigate();
   const { user, login } = useAuth();
-  
+
   const [username, setUsername] = useState(user?.username || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   const [securityQuestion, setSecurityQuestion] = useState("");
   const [securityAnswer, setSecurityAnswer] = useState("");
-  
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,19 +63,29 @@ export default function Profile() {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 4, md: 8 } }}>
       <Container maxWidth="sm">
-        
-        <Link onClick={() => navigate("/")} sx={{ display: "flex", alignItems: "center", cursor: "pointer", mb: 3, color: "text.secondary", textDecoration: "none", transition: "color 0.2s", "&:hover": { color: "text.primary" } }}>
+        <Link
+          onClick={() => navigate("/")}
+          sx={{ display: "flex", alignItems: "center", cursor: "pointer", mb: 3, color: "text.secondary", textDecoration: "none", transition: "color 0.2s", "&:hover": { color: "text.primary" } }}
+        >
           <ArrowBackIcon fontSize="small" sx={{ mr: 0.5 }} />
           <span>Back to Dashboard</span>
         </Link>
 
         <Box sx={{ p: 4, bgcolor: "rgba(255,255,255,0.7)", borderRadius: 4, boxShadow: 3 }}>
-          <Typography variant="h4" fontWeight="bold" gutterBottom textAlign="center" color="primary.main">
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", textAlign: "center", color: "primary.main" }}>
             Update Profile
           </Typography>
 
-          {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-          {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+          {success && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              {success}
+            </Alert>
+          )}
 
           <form onSubmit={handleUpdate}>
             <TextField
@@ -87,12 +97,12 @@ export default function Profile() {
               onChange={(e) => setUsername(e.target.value)}
               slotProps={{
                 input: {
-                  sx: { 
-                    bgcolor: "white", 
+                  sx: {
+                    bgcolor: "white",
                     "&:hover": { bgcolor: "#f5f5f5" },
-                    "&.Mui-focused": { bgcolor: "white" }
+                    "&.Mui-focused": { bgcolor: "white" },
                   },
-                }
+                },
               }}
             />
 
@@ -110,12 +120,12 @@ export default function Profile() {
               onChange={(e) => setCurrentPassword(e.target.value)}
               slotProps={{
                 input: {
-                  sx: { 
-                    bgcolor: "white", 
+                  sx: {
+                    bgcolor: "white",
                     "&:hover": { bgcolor: "#f5f5f5" },
-                    "&.Mui-focused": { bgcolor: "white" }
+                    "&.Mui-focused": { bgcolor: "white" },
                   },
-                }
+                },
               }}
             />
 
@@ -129,12 +139,12 @@ export default function Profile() {
               onChange={(e) => setNewPassword(e.target.value)}
               slotProps={{
                 input: {
-                  sx: { 
-                    bgcolor: "white", 
+                  sx: {
+                    bgcolor: "white",
                     "&:hover": { bgcolor: "#f5f5f5" },
-                    "&.Mui-focused": { bgcolor: "white" }
+                    "&.Mui-focused": { bgcolor: "white" },
                   },
-                }
+                },
               }}
             />
 
@@ -148,12 +158,12 @@ export default function Profile() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               slotProps={{
                 input: {
-                  sx: { 
-                    bgcolor: "white", 
+                  sx: {
+                    bgcolor: "white",
                     "&:hover": { bgcolor: "#f5f5f5" },
-                    "&.Mui-focused": { bgcolor: "white" }
+                    "&.Mui-focused": { bgcolor: "white" },
                   },
-                }
+                },
               }}
             />
 
@@ -170,12 +180,12 @@ export default function Profile() {
               onChange={(e) => setSecurityQuestion(e.target.value)}
               slotProps={{
                 input: {
-                  sx: { 
-                    bgcolor: "white", 
+                  sx: {
+                    bgcolor: "white",
                     "&:hover": { bgcolor: "#f5f5f5" },
-                    "&.Mui-focused": { bgcolor: "white" }
+                    "&.Mui-focused": { bgcolor: "white" },
                   },
-                }
+                },
               }}
             />
 
@@ -188,12 +198,12 @@ export default function Profile() {
               onChange={(e) => setSecurityAnswer(e.target.value)}
               slotProps={{
                 input: {
-                  sx: { 
-                    bgcolor: "white", 
+                  sx: {
+                    bgcolor: "white",
                     "&:hover": { bgcolor: "#f5f5f5" },
-                    "&.Mui-focused": { bgcolor: "white" }
+                    "&.Mui-focused": { bgcolor: "white" },
                   },
-                }
+                },
               }}
             />
 

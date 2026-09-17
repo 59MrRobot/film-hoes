@@ -70,9 +70,9 @@ export default function Dashboard() {
   const [keywordOptions, setKeywordOptions] = useState<{ id: number; name: string }[]>([]);
   const [isSearchingKeywords, setIsSearchingKeywords] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, _setSearchQuery] = useState("");
+  const [_searchResults, setSearchResults] = useState<any[]>([]);
+  const [_isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
 
   const fetchData = async () => {
