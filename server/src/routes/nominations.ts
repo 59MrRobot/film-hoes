@@ -4,21 +4,55 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
-// Helper to get or create the active week
+// In-memory lock to prevent race conditions during simultaneous requests
+let activeWeekPromise: Promise<any> | null = null;
+
+// Helper to get or create the active week, while self-healing any duplicates
 async function getActiveWeek() {
-  let week = await prisma.week.findFirst({
-    where: { isActive: true },
-  });
+  if (activeWeekPromise) return activeWeekPromise;
 
-  if (!week) {
-    week = await prisma.week.create({
-      data: {
-        isActive: true,
-      },
-    });
-  }
+  activeWeekPromise = (async () => {
+    try {
+      const activeWeeks = await prisma.week.findMany({
+        where: { isActive: true },
+        orderBy: { id: 'asc' }, // Keep the oldest one as primary
+      });
 
-  return week;
+      // No active week exists, create one
+      if (activeWeeks.length === 0) {
+        return await prisma.week.create({
+          data: { isActive: true },
+        });
+      }
+
+      // Duplicates exist, self-heal the database
+      if (activeWeeks.length > 1) {
+        const primaryWeek = activeWeeks[0];
+        const duplicateIds = activeWeeks.slice(1).map((w) => w.id);
+
+        // Move all nominations from duplicate weeks into the primary week
+        await prisma.nomination.updateMany({
+          where: { weekId: { in: duplicateIds } },
+          data: { weekId: primaryWeek.id },
+        });
+
+        // Delete the duplicate weeks
+        await prisma.week.deleteMany({
+          where: { id: { in: duplicateIds } },
+        });
+
+        return primaryWeek;
+      }
+
+      // Exactly one active week exists
+      return activeWeeks[0];
+    } finally {
+      // Release the lock
+      activeWeekPromise = null;
+    }
+  })();
+
+  return activeWeekPromise;
 }
 
 // Get all nominations for the active week
@@ -91,6 +125,68 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error adding nomination:', error);
     res.status(500).json({ error: 'Failed to add nomination' });
+  }
+});
+
+// Delete a nomination (only allowed if it belongs to the user and has no votes, or no votes exist this week)
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.userId;
+    const nominationId = parseInt(req.params.id);
+
+    const nomination = await prisma.nomination.findUnique({
+      where: { id: nominationId },
+      include: { votes: true },
+    });
+
+    if (!nomination) {
+      return res.status(404).json({ error: 'Nomination not found' });
+    }
+
+    if (nomination.userId !== userId) {
+      return res.status(403).json({ error: 'You can only delete your own nominations' });
+    }
+
+    // Check if voting has started globally for the week (or just on this nomination)
+    // The user requested: "only available if the voting has not been done started yet"
+    // We will check if ANY votes exist for the current week
+    const week = await getActiveWeek();
+    const totalVotesThisWeek = await prisma.vote.count({
+      where: {
+        nomination: {
+          weekId: week.id
+        }
+      }
+    });
+
+    if (totalVotesThisWeek > 0) {
+      return res.status(400).json({ error: 'Cannot replace nomination after voting has started' });
+    }
+
+    await prisma.nomination.delete({
+      where: { id: nominationId },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting nomination:', error);
+    res.status(500).json({ error: 'Failed to delete nomination' });
+  }
+});
+
+// Admin: End the current week
+router.post('/cycle-week', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    // Mark all active weeks as inactive
+    await prisma.week.updateMany({
+      where: { isActive: true },
+      data: { isActive: false },
+    });
+
+    res.json({ success: true, message: 'Week ended successfully. A new week will begin automatically.' });
+  } catch (error) {
+    console.error('Error cycling week:', error);
+    res.status(500).json({ error: 'Failed to end the week' });
   }
 });
 

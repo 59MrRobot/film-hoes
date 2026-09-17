@@ -38,13 +38,14 @@ export default function Register() {
         position: "relative",
         display: "flex",
         width: "100%",
-        height: "100%",
+        minHeight: "100vh",
         overflow: "hidden",
         alignItems: "center",
         justifyContent: "center",
         backgroundImage: "url('/login.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
+        p: 2,
       }}
     >
       <Box sx={{ position: "absolute", inset: 0, bgcolor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
@@ -67,10 +68,7 @@ export default function Register() {
       >
         <Box textAlign="center">
           <Typography variant="h4" component="h1" fontFamily="'ITC Fenice Bold', serif" color="white" gutterBottom>
-            Join the Movie Club
-          </Typography>
-          <Typography variant="body2" color="rgba(255,255,255,0.7)">
-            Join the Film Hoes
+            Join Film Hoes
           </Typography>
         </Box>
 
@@ -89,14 +87,17 @@ export default function Register() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             InputProps={{
-              sx: { color: "white", bgcolor: "rgba(0,0,0,0.4)", "&:hover": { bgcolor: "rgba(0,0,0,0.5)" } },
+              sx: { 
+                bgcolor: "white", 
+                "&:hover": { bgcolor: "#f5f5f5" },
+                "&.Mui-focused": { bgcolor: "white" }
+              },
             }}
-            InputLabelProps={{ sx: { color: "rgba(255,255,255,0.7)" } }}
           />
 
           <TextField
             label="Password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             variant="filled"
             fullWidth
             required
@@ -105,31 +106,23 @@ export default function Register() {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                    sx={{ color: 'rgba(255,255,255,0.7)' }}
-                  >
+                  <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} onMouseDown={handleMouseDownPassword} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
               ),
-              sx: { color: 'white', bgcolor: 'rgba(0,0,0,0.4)', '&:hover': { bgcolor: 'rgba(0,0,0,0.5)' } }
+              sx: { 
+                bgcolor: "white", 
+                "&:hover": { bgcolor: "#f5f5f5" },
+                "&.Mui-focused": { bgcolor: "white" }
+              },
             }}
-            InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.7)' } }}
           />
 
-          <CustomButton
-            type="submit"
-            size="large"
-            label="Register"
-            fullWidth
-          />
+          <CustomButton type="submit" size="large" label="Register" fullWidth />
 
           <Box textAlign="center">
-            <Link component={RouterLink} to="/login" sx={{ color: "#90caf9", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
+            <Link component={RouterLink} to="/login" sx={{ color: "secondary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
               Already have an account? Sign in.
             </Link>
           </Box>

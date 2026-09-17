@@ -1,29 +1,21 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './AuthContext';
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./AuthContext";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import Login from "./pages/Login";
+import Nominate from "./pages/Nominate";
+import Dashboard from "./pages/Dashboard";
+import Register from "./pages/Register";
+import FilmDetails from "./pages/FilmDetails";
 
-const theme = createTheme({
-  typography: {
-    fontFamily: '"ITC Fenice", "Times New Roman", Times, serif',
-    h1: { fontFamily: '"ITC Fenice Bold", "Times New Roman", Times, serif' },
-    h2: { fontFamily: '"ITC Fenice Bold", "Times New Roman", Times, serif' },
-    h3: { fontFamily: '"ITC Fenice Bold", "Times New Roman", Times, serif' },
-    h4: { fontFamily: '"ITC Fenice Bold", "Times New Roman", Times, serif' },
-    h5: { fontFamily: '"ITC Fenice Bold", "Times New Roman", Times, serif' },
-    h6: { fontFamily: '"ITC Fenice Bold", "Times New Roman", Times, serif' },
-  },
-});
+import { theme } from "./theme";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 }
 
@@ -36,13 +28,15 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route 
-              path="/" 
+            <Route path="/nominate" element={<Nominate />} />
+            <Route path="/film/:slug" element={<FilmDetails />} />
+            <Route
+              path="/"
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
           </Routes>
         </Router>
