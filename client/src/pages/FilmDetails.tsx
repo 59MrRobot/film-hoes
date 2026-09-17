@@ -25,6 +25,7 @@ export default function FilmDetails() {
         tmdbMovieId: movie.tmdbId,
         title: movie.title,
         posterUrl: movie.posterUrl,
+        backdropUrl: movie.backdropUrl,
       });
       setSuccess(true);
     } catch (err: any) {
@@ -112,7 +113,7 @@ export default function FilmDetails() {
         />
       )}
       <Container maxWidth="md" sx={{ position: "relative", zIndex: 1, pt: { xs: 8, md: 20 }, pb: 2 }}>
-        <Link component="button" onClick={() => navigate(-1)} sx={{ display: "flex", alignItems: "center", mb: 3, cursor: "pointer", textDecoration: "none", color: "text.primary" }}>
+        <Link component="button" onClick={() => navigate(-1)} sx={{ display: "flex", alignItems: "center", mb: 3, cursor: "pointer", textDecoration: "none", color: "text.secondary", transition: "color 0.2s", "&:hover": { color: "text.primary" } }}>
           <ArrowBackIcon fontSize="small" sx={{ mr: 0.5 }} />
           <span>Back</span>
         </Link>
@@ -195,7 +196,7 @@ export default function FilmDetails() {
                   <Box sx={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: 2, overflow: "hidden", boxShadow: 2 }}>
                     <iframe
                       style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
-                      src={`https://www.youtube.com/embed/${movie.trailerKey}?rel=0`}
+                      src={`https://www.youtube-nocookie.com/embed/${movie.trailerKey}?rel=0`}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       title="Trailer"

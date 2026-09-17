@@ -10,6 +10,8 @@ import CustomButton from "../components/CustomButton";
 export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [securityQuestion, setSecurityQuestion] = useState("");
+  const [securityAnswer, setSecurityAnswer] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
@@ -21,7 +23,7 @@ export default function Register() {
     setError("");
 
     try {
-      const response = await api.post("/auth/register", { username, password });
+      const response = await api.post("/auth/register", { username, password, securityQuestion, securityAnswer });
       login(response.data.user, response.data.token);
       navigate("/");
     } catch (err: any) {
@@ -86,12 +88,14 @@ export default function Register() {
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            InputProps={{
-              sx: { 
-                bgcolor: "white", 
-                "&:hover": { bgcolor: "#f5f5f5" },
-                "&.Mui-focused": { bgcolor: "white" }
-              },
+            slotProps={{
+              input: {
+                sx: { 
+                  bgcolor: "white", 
+                  "&:hover": { bgcolor: "#f5f5f5" },
+                  "&.Mui-focused": { bgcolor: "white" }
+                },
+              }
             }}
           />
 
@@ -103,19 +107,57 @@ export default function Register() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} onMouseDown={handleMouseDownPassword} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-              sx: { 
-                bgcolor: "white", 
-                "&:hover": { bgcolor: "#f5f5f5" },
-                "&.Mui-focused": { bgcolor: "white" }
-              },
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} onMouseDown={handleMouseDownPassword} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                sx: { 
+                  bgcolor: "white", 
+                  "&:hover": { bgcolor: "#f5f5f5" },
+                  "&.Mui-focused": { bgcolor: "white" }
+                },
+              }
+            }}
+          />
+
+          <TextField
+            label="Security Question (e.g. Favorite Movie?)"
+            variant="filled"
+            fullWidth
+            required
+            value={securityQuestion}
+            onChange={(e) => setSecurityQuestion(e.target.value)}
+            slotProps={{
+              input: {
+                sx: { 
+                  bgcolor: "white", 
+                  "&:hover": { bgcolor: "#f5f5f5" },
+                  "&.Mui-focused": { bgcolor: "white" }
+                },
+              }
+            }}
+          />
+
+          <TextField
+            label="Security Answer"
+            variant="filled"
+            fullWidth
+            required
+            value={securityAnswer}
+            onChange={(e) => setSecurityAnswer(e.target.value)}
+            slotProps={{
+              input: {
+                sx: { 
+                  bgcolor: "white", 
+                  "&:hover": { bgcolor: "#f5f5f5" },
+                  "&.Mui-focused": { bgcolor: "white" }
+                },
+              }
             }}
           />
 

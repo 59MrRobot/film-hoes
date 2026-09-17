@@ -1,4 +1,5 @@
 import express from 'express';
+// Force backend restart
 import { prisma } from '../db';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 
@@ -18,11 +19,9 @@ async function getActiveWeek() {
         orderBy: { id: 'asc' }, // Keep the oldest one as primary
       });
 
-      // No active week exists, create one
+      // No active week exists, throw error
       if (activeWeeks.length === 0) {
-        return await prisma.week.create({
-          data: { isActive: true },
-        });
+        throw new Error("No active week currently exists");
       }
 
       // Duplicates exist, self-heal the database
@@ -55,7 +54,28 @@ async function getActiveWeek() {
   return activeWeekPromise;
 }
 
-// Get all nominations for the active week
+// Get the latest week (active or ended) and its nominations
+router.get('/latest', async (req, res) => {
+  try {
+    const latestWeek = await prisma.week.findFirst({
+      orderBy: { id: 'desc' },
+      include: {
+        nominations: {
+          include: {
+            user: { select: { id: true, username: true } },
+            votes: true,
+          }
+        }
+      }
+    });
+    res.json(latestWeek || null);
+  } catch (error) {
+    console.error('Error fetching latest week:', error);
+    res.status(500).json({ error: 'Failed to fetch latest week' });
+  }
+});
+
+// Get all nominations for the active week (legacy endpoint)
 router.get('/', async (req, res) => {
   try {
     const week = await getActiveWeek();
@@ -77,11 +97,39 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Add a nomination
+// Get historical weeks
+router.get('/history', async (req, res) => {
+  try {
+    const latestWeek = await prisma.week.findFirst({ orderBy: { id: 'desc' } });
+
+    const historicalWeeks = await prisma.week.findMany({
+      where: { 
+        isActive: false,
+        ...(latestWeek ? { id: { not: latestWeek.id } } : {})
+      },
+      include: {
+        nominations: {
+          include: {
+            user: {
+              select: { id: true, username: true },
+            },
+            votes: true,
+          },
+        },
+      },
+      orderBy: { startDate: 'desc' },
+    });
+    res.json(historicalWeeks);
+  } catch (error) {
+    console.error('Error fetching history:', error);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.userId;
-    const { tmdbMovieId, title, posterUrl } = req.body;
+    const { tmdbMovieId, title, posterUrl, backdropUrl } = req.body;
 
     if (!tmdbMovieId || !title) {
       return res.status(400).json({ error: 'Movie ID and title are required' });
@@ -114,6 +162,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         tmdbMovieId,
         title,
         posterUrl,
+        backdropUrl,
       },
       include: {
         user: { select: { id: true, username: true } },
@@ -174,19 +223,80 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
-// Admin: End the current week
-router.post('/cycle-week', authenticateToken, async (req: AuthRequest, res) => {
+// Get current active week info
+router.get('/active-week', async (req, res) => {
   try {
+    const week = await getActiveWeek();
+    res.json(week);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch active week' });
+  }
+});
+
+// Update current active week theme (Admin only)
+router.put('/active-week/theme', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user!.isAdmin) {
+      return res.status(403).json({ error: 'Only admins can set the theme' });
+    }
+    const { theme } = req.body;
+    const week = await getActiveWeek();
+    const updatedWeek = await prisma.week.update({
+      where: { id: week.id },
+      data: { theme },
+    });
+    res.json(updatedWeek);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update theme' });
+  }
+});
+
+// Admin: End the current week
+router.post('/end-week', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user!.isAdmin) {
+      return res.status(403).json({ error: 'Only admins can end the week' });
+    }
+
     // Mark all active weeks as inactive
     await prisma.week.updateMany({
       where: { isActive: true },
       data: { isActive: false },
     });
 
-    res.json({ success: true, message: 'Week ended successfully. A new week will begin automatically.' });
+    res.json({ success: true, message: 'Week ended successfully.' });
   } catch (error) {
-    console.error('Error cycling week:', error);
+    console.error('Error ending week:', error);
     res.status(500).json({ error: 'Failed to end the week' });
+  }
+});
+
+// Admin: Start a new week
+router.post('/start-week', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user!.isAdmin) {
+      return res.status(403).json({ error: 'Only admins can start a week' });
+    }
+
+    const { theme } = req.body;
+    if (!theme) {
+      return res.status(400).json({ error: 'Theme is required to start a week' });
+    }
+
+    // Mark any straggling active weeks inactive just in case
+    await prisma.week.updateMany({
+      where: { isActive: true },
+      data: { isActive: false },
+    });
+
+    const newWeek = await prisma.week.create({
+      data: { isActive: true, theme },
+    });
+
+    res.json({ success: true, newWeek });
+  } catch (error) {
+    console.error('Error starting week:', error);
+    res.status(500).json({ error: 'Failed to start the week' });
   }
 });
 

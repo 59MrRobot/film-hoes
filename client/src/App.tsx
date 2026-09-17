@@ -6,6 +6,8 @@ import Nominate from "./pages/Nominate";
 import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
 import FilmDetails from "./pages/FilmDetails";
+import Profile from "./pages/Profile";
+import History from "./pages/History";
 
 import { theme } from "./theme";
 
@@ -35,6 +37,22 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <History />
                 </ProtectedRoute>
               }
             />

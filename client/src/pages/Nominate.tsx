@@ -32,7 +32,7 @@ export default function Nominate() {
     const fetchNominations = async () => {
       if (!user) return;
       try {
-        const res = await api.get('/nominations');
+        const res = await api.get("/nominations");
         const myNominations = res.data.filter((n: any) => n.userId === user.id);
         setNominationCount(myNominations.length);
       } catch (err) {
@@ -60,7 +60,7 @@ export default function Nominate() {
       } finally {
         setIsSearching(false);
       }
-    }, 1500);
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery, dispatch]);
 
@@ -83,7 +83,10 @@ export default function Nominate() {
     <Box sx={{ height: "100vh", bgcolor: "background.default", display: "flex", flexDirection: "column", p: { xs: 2, md: 4 } }}>
       <Box sx={{ p: 0, width: "100%", maxWidth: 1000, mx: "auto", display: "flex", flexDirection: "column", flexGrow: 1, overflow: "hidden" }}>
         <Box>
-          <Link onClick={() => navigate("/")} sx={{ display: "flex", alignItems: "center", cursor: "pointer", mb: 2 }}>
+          <Link
+            onClick={() => navigate("/")}
+            sx={{ display: "flex", alignItems: "center", cursor: "pointer", mb: 2, color: "text.secondary", textDecoration: "none", transition: "color 0.2s", "&:hover": { color: "text.primary" } }}
+          >
             <ArrowBackIcon fontSize="small" sx={{ mr: 0.5 }} />
             <span>{`Back to Dashboard`}</span>
           </Link>
@@ -92,12 +95,12 @@ export default function Nominate() {
               Nominate a Film
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase", letterSpacing: 1, display: { xs: 'none', sm: 'block' } }}>
+              <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase", letterSpacing: 1, display: { xs: "none", sm: "block" } }}>
                 Weekly Slots
               </Typography>
               <Box sx={{ display: "flex", gap: 1 }}>
                 {[...Array(2)].map((_, i) => {
-                  const isAvailable = i < (2 - nominationCount);
+                  const isAvailable = i < 2 - nominationCount;
                   return (
                     <Box
                       key={i}
@@ -109,7 +112,7 @@ export default function Nominate() {
                         bgcolor: isAvailable ? "secondary.main" : "transparent",
                         boxShadow: isAvailable ? "0 0 8px rgba(212, 168, 67, 0.6)" : "none",
                         border: isAvailable ? "none" : "2px solid rgba(0,0,0,0.15)",
-                        transition: "all 0.3s ease"
+                        transition: "all 0.3s ease",
                       }}
                     />
                   );

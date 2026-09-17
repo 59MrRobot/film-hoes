@@ -6,6 +6,27 @@ const router = express.Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
+router.get('/keywords', async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!TMDB_API_KEY) {
+      return res.status(500).json({ error: 'TMDB_API_KEY is not configured' });
+    }
+    if (!query) {
+      return res.json([]);
+    }
+    
+    const response = await fetch(`${TMDB_BASE_URL}/search/keyword?query=${encodeURIComponent(query as string)}&api_key=${TMDB_API_KEY}`);
+    if (!response.ok) throw new Error('Failed to fetch keywords');
+    
+    const data = await response.json();
+    res.json(data.results || []);
+  } catch (error) {
+    console.error('Error fetching keywords:', error);
+    res.status(500).json({ error: 'Failed to fetch keywords' });
+  }
+});
+
 // Search for movies
 router.get('/search', async (req, res) => {
   try {
@@ -36,8 +57,6 @@ router.get('/search', async (req, res) => {
 
     const data = await response.json();
     
-    // Fetch credits for the results to include the director
-    // Limit to 15 to keep it fast and avoid aggressive rate limiting
     const searchResults = data.results.slice(0, 15);
     
     const movies = await Promise.all(searchResults.map(async (movie: any) => {
@@ -94,12 +113,9 @@ router.get('/:id', async (req, res) => {
 
     const data = await response.json();
     
-    // Find Director
     const director = data.credits?.crew?.find((member: any) => member.job === 'Director')?.name;
-    // Get top 10 cast members
     const cast = data.credits?.cast?.slice(0, 10).map((member: any) => member.name) || [];
 
-    // Find YouTube Trailer
     const youtubeVideos = data.videos?.results?.filter((v: any) => v.site === 'YouTube') || [];
     const trailer = youtubeVideos.find((v: any) => v.type === 'Trailer') || youtubeVideos[0] || null;
     const trailerKey = trailer ? trailer.key : null;
