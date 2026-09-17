@@ -37,7 +37,7 @@ router.put('/:id/role', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Only admins can change roles' });
     }
 
-    const targetUserId = parseInt(req.params.id);
+    const targetUserId = parseInt(req.params.id as string);
     const { isAdmin } = req.body;
 
     if (isNaN(targetUserId)) {

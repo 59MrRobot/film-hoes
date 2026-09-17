@@ -181,7 +181,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.userId;
-    const nominationId = parseInt(req.params.id);
+    const nominationId = parseInt(req.params.id as string);
 
     const nomination = await prisma.nomination.findUnique({
       where: { id: nominationId },
