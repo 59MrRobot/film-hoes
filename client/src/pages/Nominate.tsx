@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import api from "../api";
-import { Box, Typography, TextField, Alert, Link, List, ListItem, ListItemAvatar, Avatar, ListItemText, InputAdornment, IconButton } from "@mui/material";
+import { Box, Typography, TextField, Alert, Link, List, ListItem, ListItemAvatar, Avatar, ListItemText, InputAdornment, IconButton, CircularProgress } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -24,6 +24,7 @@ export default function Nominate() {
       .replace(/\s+/g, "-");
 
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const { user } = useAuth();
   const [nominationCount, setNominationCount] = useState<number>(0);
@@ -32,11 +33,14 @@ export default function Nominate() {
     const fetchNominations = async () => {
       if (!user) return;
       try {
+        setIsLoading(true);
         const res = await api.get("/nominations");
         const myNominations = res.data.filter((n: any) => n.userId === user.id);
         setNominationCount(myNominations.length);
       } catch (_err) {
         console.error("Failed to fetch nominations count", _err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchNominations();
@@ -98,8 +102,11 @@ export default function Nominate() {
               <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase", letterSpacing: 1, display: { xs: "none", sm: "block" } }}>
                 Weekly Slots
               </Typography>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                {[...Array(2)].map((_, i) => {
+              <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                {isLoading ? (
+                  <CircularProgress size={16} sx={{ ml: 1, color: "text.secondary" }} />
+                ) : (
+                  [...Array(2)].map((_, i) => {
                   const isAvailable = i < 2 - nominationCount;
                   return (
                     <Box
@@ -116,7 +123,8 @@ export default function Nominate() {
                       }}
                     />
                   );
-                })}
+                })
+                )}
               </Box>
             </Box>
           </Box>
@@ -206,6 +214,7 @@ export default function Nominate() {
             )
           )}
         </Box>
+
       </Box>
     </Box>
   );

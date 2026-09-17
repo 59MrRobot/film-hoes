@@ -74,9 +74,14 @@ export default function Dashboard() {
   const [_searchResults, setSearchResults] = useState<any[]>([]);
   const [_isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [votingId, setVotingId] = useState<number | null>(null);
+  const [isEndingWeek, setIsEndingWeek] = useState(false);
+  const [isStartingWeek, setIsStartingWeek] = useState(false);
 
   const fetchData = async () => {
     try {
+      setIsLoading(true);
       const latestRes = await api.get("/nominations/latest");
       if (latestRes.data) {
         setLatestWeek(latestRes.data);
@@ -84,6 +89,8 @@ export default function Dashboard() {
       }
     } catch (_err) {
       console.error("Failed to fetch dashboard data", _err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -134,11 +141,25 @@ export default function Dashboard() {
 
   const castVote = async (nominationId: number) => {
     try {
+      setVotingId(nominationId);
       setError("");
-      await api.post("/votes", { nominationId });
-      fetchData(); // refresh votes
+      const res = await api.post("/votes", { nominationId });
+      
+      if (user) {
+        setNominations(prev => prev.map(nom => {
+          if (nom.id === nominationId) {
+            if (res.data.message === 'Vote removed') {
+              return { ...nom, votes: nom.votes.filter(v => v.userId !== user.id) };
+            }
+            return { ...nom, votes: [...nom.votes, res.data] };
+          }
+          return nom;
+        }));
+      }
     } catch (_err: any) {
       setError(_err.response?.data?.error || "Failed to cast vote");
+    } finally {
+      setVotingId(null);
     }
   };
 
@@ -172,11 +193,14 @@ export default function Dashboard() {
     if (!window.confirm("Are you sure you want to end the current week? Nominations and votes will be closed.")) return;
 
     try {
+      setIsEndingWeek(true);
       await api.post("/nominations/end-week");
-      fetchData();
+      await fetchData();
     } catch (_err) {
       console.error("Failed to end week", _err);
       setError("Failed to end the week");
+    } finally {
+      setIsEndingWeek(false);
     }
   };
 
@@ -187,14 +211,17 @@ export default function Dashboard() {
     }
 
     try {
+      setIsStartingWeek(true);
       await api.post("/nominations/start-week", { theme: selectedTheme.name });
       setStartWeekDialogOpen(false);
       setSelectedTheme(null);
       setKeywordQuery("");
-      fetchData();
+      await fetchData();
     } catch (_err) {
       console.error("Failed to start week", _err);
       setError("Failed to start the new week");
+    } finally {
+      setIsStartingWeek(false);
     }
   };
 
@@ -229,7 +256,11 @@ export default function Dashboard() {
   };
 
   const nominationsListContent =
-    nominations.length === 0 ? (
+    isLoading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress />
+      </Box>
+    ) : nominations.length === 0 ? (
       <Typography color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
         No movies nominated yet for this week!
       </Typography>
@@ -239,19 +270,6 @@ export default function Dashboard() {
           width: "100%",
           bgcolor: "transparent",
           p: 0,
-          maxHeight: { xs: "600px", sm: "420px", md: "560px" },
-          overflowY: "auto",
-          pr: 1, // padding for the scrollbar
-          "&::-webkit-scrollbar": {
-            width: "6px",
-          },
-          "&::-webkit-scrollbar-track": {
-            bgcolor: "transparent",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            bgcolor: "rgba(0,0,0,0.2)",
-            borderRadius: "10px",
-          },
         }}
       >
         {nominations.map((nom) => {
@@ -319,7 +337,7 @@ export default function Dashboard() {
                 {isOwn && totalVotesThisWeek === 0 ? (
                   <CustomButton variant="outlined" color="primary" size="small" disabled={!latestWeek?.isActive} onClick={() => handleReplace(nom.id)} label="Replace" />
                 ) : (
-                  <CustomButton variant={voted ? "contained" : "outlined"} size="small" disabled={isOwn || !latestWeek?.isActive} onClick={() => castVote(nom.id)} label={voted ? "Voted ✓" : "Vote"} />
+                  <CustomButton variant={voted ? "contained" : "outlined"} size="small" disabled={isOwn || !latestWeek?.isActive || votingId === nom.id} onClick={() => castVote(nom.id)} label={votingId === nom.id ? "Voting..." : voted ? "Voted ✓" : "Vote"} />
                 )}
               </Box>
             </ListItem>
@@ -475,7 +493,7 @@ export default function Dashboard() {
             {user?.isAdmin && (
               <>
                 {latestWeek?.isActive ? (
-                  <CustomButton size="small" variant="outlined" color="error" onClick={handleEndWeek} label="Admin: End Week" />
+                  <CustomButton size="small" variant="outlined" color="error" disabled={isEndingWeek} onClick={handleEndWeek} label={isEndingWeek ? "Ending..." : "Admin: End Week"} />
                 ) : (
                   <CustomButton size="small" variant="contained" color="secondary" onClick={() => setStartWeekDialogOpen(true)} label="Admin: Start New Week" />
                 )}
@@ -495,7 +513,9 @@ export default function Dashboard() {
                   {latestWeek?.isActive ? "Top 3 Leaders" : "Final Leaderboard"}
                 </Typography>
 
-                {top3.length === 0 || top3[0].votes.length === 0 ? (
+                {isLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
+                ) : top3.length === 0 || top3[0].votes.length === 0 ? (
                   <Typography color="text.secondary" sx={{ py: 2, fontStyle: "italic", fontSize: "0.9rem", textAlign: latestWeek?.isActive ? "left" : "center" }}>
                     No votes cast yet this week.
                   </Typography>
@@ -734,7 +754,7 @@ export default function Dashboard() {
             <Button onClick={() => setStartWeekDialogOpen(false)} color="inherit">
               Cancel
             </Button>
-            <CustomButton onClick={handleStartWeek} variant="contained" label="Start Week" />
+            <CustomButton onClick={handleStartWeek} disabled={isStartingWeek} variant="contained" label={isStartingWeek ? "Starting..." : "Start Week"} />
           </DialogActions>
         </Dialog>
 
