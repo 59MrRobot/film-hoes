@@ -333,8 +333,8 @@ export default function Dashboard() {
       {/* Subtle theater vignette */}
       <Box sx={{ position: "fixed", inset: 0, pointerEvents: "none", background: "radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(0,0,0,0.06) 100%)", zIndex: 0 }} />
 
-      {/* Cinematic Leader/Winner Backdrop */}
-      {top3.length > 0 && top3[0].backdropUrl && (
+      {/* Cinematic Leader/Winner Backdrop (Only shows when week is ended) */}
+      {!latestWeek?.isActive && top3.length > 0 && top3[0].backdropUrl && (
         <Box
           sx={{
             position: "fixed",
