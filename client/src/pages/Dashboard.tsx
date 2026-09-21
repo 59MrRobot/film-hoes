@@ -669,9 +669,9 @@ export default function Dashboard() {
                         Weekly Votes
                       </Typography>
                       <Box sx={{ display: "flex", gap: 1 }}>
-                        {[...Array(2)].map((_, i) => {
+                        {[...Array(3)].map((_, i) => {
                           const myVotesCount = nominations.flatMap((n) => n.votes).filter((v) => v.userId === user?.id).length;
-                          const isAvailable = i < 2 - myVotesCount;
+                          const isAvailable = i < 3 - myVotesCount;
                           return (
                             <Box
                               key={i}

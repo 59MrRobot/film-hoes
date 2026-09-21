@@ -58,7 +58,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       return res.json({ message: 'Vote removed' });
     }
 
-    // 4. Rule: Max 2 votes per week
+    // 4. Rule: Max 3 votes per week
     const userVotesThisWeek = await prisma.vote.count({
       where: {
         userId,
@@ -68,8 +68,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       },
     });
 
-    if (userVotesThisWeek >= 2) {
-      return res.status(400).json({ error: 'You can only vote for up to 2 movies per week' });
+    if (userVotesThisWeek >= 3) {
+      return res.status(400).json({ error: 'You can only vote for up to 3 movies per week' });
     }
 
     // Cast the vote
