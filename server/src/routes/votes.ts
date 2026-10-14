@@ -78,6 +78,9 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         userId,
         nominationId,
       },
+      include: {
+        user: { select: { id: true, username: true } },
+      },
     });
 
     res.status(201).json(vote);

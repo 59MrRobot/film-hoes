@@ -28,6 +28,8 @@ import {
   Switch,
   FormControlLabel,
   DialogContentText,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import LocalMoviesIcon from "@mui/icons-material/LocalMovies";
@@ -37,6 +39,10 @@ interface Vote {
   id: number;
   userId: number;
   nominationId: number;
+  user?: {
+    id: number;
+    username: string;
+  };
 }
 
 interface Nomination {
@@ -177,7 +183,13 @@ export default function Dashboard() {
       .replace(/\s+/g, "-");
   };
 
-  const totalVotesThisWeek = nominations.reduce((sum, nom) => sum + nom.votes.length, 0);
+  const getVoterName = (vote: Vote) => {
+    if (vote.user?.username) return vote.user.username;
+    if (vote.userId === user?.id) return user.username;
+    const nomUser = nominations.find((n) => n.user.id === vote.userId)?.user;
+    if (nomUser?.username) return nomUser.username;
+    return "Unknown";
+  };
 
   const handleReplace = async (nominationId: number) => {
     try {
@@ -313,6 +325,29 @@ export default function Dashboard() {
                   <Typography variant="body2" color="text.secondary">
                     Nominated by <span style={{ fontWeight: "bold" }}>{nom.user.username}</span>
                   </Typography>
+                  {nom.votes.length > 0 && (
+                    <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5, mt: 0.75 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: "bold", mr: 0.5 }}>
+                        Voters:
+                      </Typography>
+                      {nom.votes.map((v) => (
+                        <Chip
+                          key={v.id}
+                          label={getVoterName(v)}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            height: 20,
+                            fontSize: "0.7rem",
+                            bgcolor: v.userId === user?.id ? "rgba(212, 168, 67, 0.15)" : "rgba(0, 0, 0, 0.04)",
+                            borderColor: v.userId === user?.id ? "secondary.main" : "divider",
+                            fontWeight: v.userId === user?.id ? "bold" : "normal",
+                            color: "text.primary",
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
                 </Box>
               </Box>
 
@@ -331,10 +366,19 @@ export default function Dashboard() {
                   minWidth: 100,
                 }}
               >
-                <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.secondary", mb: { xs: 0, sm: 1 } }}>
-                  {nom.votes.length} votes
-                </Typography>
-                {isOwn && totalVotesThisWeek === 0 ? (
+                <Tooltip
+                  title={
+                    nom.votes.length > 0
+                      ? `Voted by: ${nom.votes.map((v) => getVoterName(v)).join(", ")}`
+                      : "No votes yet"
+                  }
+                  arrow
+                >
+                  <Typography variant="body2" sx={{ fontWeight: "bold", color: "text.secondary", mb: { xs: 0, sm: 1 }, cursor: "pointer" }}>
+                    {nom.votes.length} {nom.votes.length === 1 ? "vote" : "votes"}
+                  </Typography>
+                </Tooltip>
+                {isOwn && nom.votes.length === 0 ? (
                   <CustomButton variant="outlined" color="primary" size="small" disabled={!latestWeek?.isActive} onClick={() => handleReplace(nom.id)} label="Replace" />
                 ) : (
                   <CustomButton variant={voted ? "contained" : "outlined"} size="small" disabled={isOwn || !latestWeek?.isActive || votingId === nom.id} onClick={() => castVote(nom.id)} label={votingId === nom.id ? "Voting..." : voted ? "Voted ✓" : "Vote"} />
@@ -644,9 +688,37 @@ export default function Dashboard() {
                             <Typography variant={isEnded ? (index === 0 ? "h5" : "h6") : index === 0 ? "subtitle1" : "subtitle2"} sx={{ fontWeight: "bold", lineHeight: 1.2, mb: isEnded ? 1 : 0 }}>
                               {nom.title}
                             </Typography>
-                            <Typography variant={isEnded ? "body2" : "caption"} color="text.secondary" sx={{ fontWeight: index === 0 ? "bold" : "normal" }}>
-                              {nom.votes.length} {nom.votes.length === 1 ? "vote" : "votes"}
-                            </Typography>
+                            <Tooltip
+                              title={
+                                nom.votes.length > 0
+                                  ? `Voted by: ${nom.votes.map((v) => getVoterName(v)).join(", ")}`
+                                  : "No votes yet"
+                              }
+                              arrow
+                            >
+                              <Typography variant={isEnded ? "body2" : "caption"} color="text.secondary" sx={{ fontWeight: index === 0 ? "bold" : "normal", cursor: "pointer", display: "inline-block" }}>
+                                {nom.votes.length} {nom.votes.length === 1 ? "vote" : "votes"}
+                              </Typography>
+                            </Tooltip>
+                            {nom.votes.length > 0 && (
+                              <Box sx={{ display: "flex", justifyContent: isEnded ? "center" : "flex-start", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
+                                {nom.votes.map((v) => (
+                                  <Chip
+                                    key={`top3-voter-${v.id}`}
+                                    label={getVoterName(v)}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{
+                                      height: 18,
+                                      fontSize: "0.65rem",
+                                      bgcolor: v.userId === user?.id ? "rgba(212, 168, 67, 0.15)" : "rgba(0, 0, 0, 0.04)",
+                                      borderColor: v.userId === user?.id ? "secondary.main" : "divider",
+                                      fontWeight: v.userId === user?.id ? "bold" : "normal",
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            )}
                           </Box>
                         </ListItem>
                       );

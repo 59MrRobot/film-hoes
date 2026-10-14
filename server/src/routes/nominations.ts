@@ -63,7 +63,11 @@ router.get('/latest', async (req, res) => {
         nominations: {
           include: {
             user: { select: { id: true, username: true } },
-            votes: true,
+            votes: {
+              include: {
+                user: { select: { id: true, username: true } },
+              },
+            },
           }
         }
       }
@@ -86,7 +90,11 @@ router.get('/', async (req, res) => {
         user: {
           select: { id: true, username: true },
         },
-        votes: true,
+        votes: {
+          include: {
+            user: { select: { id: true, username: true } },
+          },
+        },
       },
     });
 
@@ -113,7 +121,11 @@ router.get('/history', async (req, res) => {
             user: {
               select: { id: true, username: true },
             },
-            votes: true,
+            votes: {
+              include: {
+                user: { select: { id: true, username: true } },
+              },
+            },
           },
         },
       },
@@ -166,7 +178,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       },
       include: {
         user: { select: { id: true, username: true } },
-        votes: true,
+        votes: {
+          include: {
+            user: { select: { id: true, username: true } },
+          },
+        },
       }
     });
 
@@ -185,7 +201,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
     const nomination = await prisma.nomination.findUnique({
       where: { id: nominationId },
-      include: { votes: true },
+      include: { votes: true, week: true },
     });
 
     if (!nomination) {
@@ -196,20 +212,12 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'You can only delete your own nominations' });
     }
 
-    // Check if voting has started globally for the week (or just on this nomination)
-    // The user requested: "only available if the voting has not been done started yet"
-    // We will check if ANY votes exist for the current week
-    const week = await getActiveWeek();
-    const totalVotesThisWeek = await prisma.vote.count({
-      where: {
-        nomination: {
-          weekId: week.id
-        }
-      }
-    });
+    if (!nomination.week.isActive) {
+      return res.status(400).json({ error: 'Cannot replace nomination for an inactive week' });
+    }
 
-    if (totalVotesThisWeek > 0) {
-      return res.status(400).json({ error: 'Cannot replace nomination after voting has started' });
+    if (nomination.votes.length > 0) {
+      return res.status(400).json({ error: 'Cannot replace nomination after it has received votes' });
     }
 
     await prisma.nomination.delete({

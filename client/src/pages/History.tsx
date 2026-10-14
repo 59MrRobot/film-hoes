@@ -9,6 +9,10 @@ interface Vote {
   id: number;
   userId: number;
   nominationId: number;
+  user?: {
+    id: number;
+    username: string;
+  };
 }
 
 interface Nomination {
@@ -85,6 +89,7 @@ export default function History() {
               const sortedNoms = [...week.nominations].sort((a, b) => b.votes.length - a.votes.length);
               const winner = sortedNoms.length > 0 ? sortedNoms[0] : null;
               const runnersUp = sortedNoms.slice(1, 4);
+              const getVoterName = (v: Vote) => v.user?.username || week.nominations.find((n) => n.user.id === v.userId)?.user?.username || "Unknown";
 
               return (
                 <Box
@@ -178,8 +183,28 @@ export default function History() {
                               {winner.title}
                             </Typography>
                             <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.8)" }}>
-                              Nominated by <strong>{winner.user.username}</strong> • {winner.votes.length} votes
+                              Nominated by <strong>{winner.user.username}</strong> • {winner.votes.length} {winner.votes.length === 1 ? "vote" : "votes"}
                             </Typography>
+                            {winner.votes.length > 0 && (
+                              <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5, mt: 1 }}>
+                                <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)", mr: 0.5 }}>
+                                  Voted by:
+                                </Typography>
+                                {winner.votes.map((v) => (
+                                  <Chip
+                                    key={v.id}
+                                    label={getVoterName(v)}
+                                    size="small"
+                                    sx={{
+                                      height: 20,
+                                      fontSize: "0.7rem",
+                                      bgcolor: "rgba(255,255,255,0.15)",
+                                      color: "white",
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            )}
                           </Box>
 
                           {runnersUp.length > 0 && (
@@ -196,7 +221,8 @@ export default function History() {
                                         {nom.title}
                                       </Typography>
                                       <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.6)" }}>
-                                        {nom.votes.length} votes
+                                        {nom.votes.length} {nom.votes.length === 1 ? "vote" : "votes"}
+                                        {nom.votes.length > 0 && ` • Voted by: ${nom.votes.map((v) => getVoterName(v)).join(", ")}`}
                                       </Typography>
                                     </Box>
                                   </Box>
